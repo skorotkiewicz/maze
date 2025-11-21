@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { LevelSelector } from './components/LevelSelector';
 import { MazeGame } from './components/MazeGame';
+import { LevelCreator } from './components/LevelCreator';
 import type { Level } from './types';
 
 function App() {
   const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'won' | 'lost'>('menu');
-
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'won' | 'lost' | 'editor'>('menu');
   const [retryCount, setRetryCount] = useState(0);
 
   const handleLevelSelect = (level: Level) => {
     setCurrentLevel(level);
     setGameState('playing');
     setRetryCount(0);
+  };
+
+  const handleCreateLevel = () => {
+    setGameState('editor');
   };
 
   const handleWin = () => {
@@ -28,13 +32,33 @@ function App() {
     setCurrentLevel(null);
   };
 
+  const handleEditorBack = () => {
+    setGameState('menu');
+  };
+
+  const handleTestPlay = (level: Level) => {
+    setCurrentLevel(level);
+    setGameState('playing');
+    setRetryCount(0);
+  };
+
   const handleRetry = () => {
     setGameState('playing');
     setRetryCount(c => c + 1);
   };
 
+  if (gameState === 'editor') {
+    return <LevelCreator onBack={handleEditorBack} onPlay={handleTestPlay} />;
+  }
+
   if (!currentLevel || gameState === 'menu') {
-    return <LevelSelector onSelectLevel={handleLevelSelect} />;
+    return (
+      <LevelSelector 
+        onSelectLevel={handleLevelSelect} 
+        onCreateLevel={handleCreateLevel}
+        onImportLevel={handleLevelSelect}
+      />
+    );
   }
 
   return (
@@ -62,7 +86,17 @@ function App() {
             
             <div className="flex gap-4 justify-center">
               <button 
-                onClick={handleBack}
+                onClick={() => {
+                  if (currentLevel?.id.startsWith('custom-') || currentLevel?.id.startsWith('imported-')) {
+                    // If testing a custom level, go back to editor? 
+                    // Actually, for simplicity, let's just go back to menu for now, 
+                    // or we'd need to track previous state.
+                    // Let's stick to menu for consistency.
+                    handleBack();
+                  } else {
+                    handleBack();
+                  }
+                }}
                 className="px-8 py-3 rounded-full border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
               >
                 Menu
