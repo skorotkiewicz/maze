@@ -1,10 +1,4 @@
-import level1 from "../levels/level1.json";
-import level2 from "../levels/level2.json";
-import level3 from "../levels/level3.json";
-import level4 from "../levels/level4.json";
-import type { Level } from "../types";
-
-const LEVELS: Level[] = [level1, level2, level3, level4];
+import { LEVELS, type Level } from "../levels";
 
 interface LevelSelectorProps {
   onSelectLevel: (level: Level) => void;

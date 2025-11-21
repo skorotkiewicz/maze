@@ -1,0 +1,18 @@
+{
+  "id": "level6",
+  "name": "The Labyrinth",
+  "size": { "width": 800, "height": 600 },
+  "start": { "x": 40, "y": 40, "radius": 20 },
+  "end": { "x": 760, "y": 560, "width": 40, "height": 40 },
+  "walls": [
+    { "x": 80, "y": 0, "width": 20, "height": 500 },
+    { "x": 160, "y": 100, "width": 20, "height": 500 },
+    { "x": 240, "y": 0, "width": 20, "height": 500 },
+    { "x": 320, "y": 100, "width": 20, "height": 500 },
+    { "x": 400, "y": 0, "width": 20, "height": 500 },
+    { "x": 480, "y": 100, "width": 20, "height": 500 },
+    { "x": 560, "y": 0, "width": 20, "height": 500 },
+    { "x": 640, "y": 100, "width": 20, "height": 500 },
+    { "x": 720, "y": 0, "width": 20, "height": 500 }
+  ]
+}

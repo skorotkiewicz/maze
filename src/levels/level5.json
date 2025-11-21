@@ -1,0 +1,25 @@
+{
+  "id": "level5",
+  "name": "The Gauntlet",
+  "size": { "width": 800, "height": 600 },
+  "start": { "x": 50, "y": 300, "radius": 20 },
+  "end": { "x": 750, "y": 300, "width": 40, "height": 40 },
+  "walls": [
+    { "x": 100, "y": 0, "width": 50, "height": 250 },
+    { "x": 100, "y": 350, "width": 50, "height": 250 },
+
+    { "x": 250, "y": 100, "width": 20, "height": 400 },
+    { "x": 250, "y": 100, "width": 200, "height": 20 },
+    { "x": 250, "y": 480, "width": 200, "height": 20 },
+
+    { "x": 430, "y": 100, "width": 20, "height": 150 },
+    { "x": 430, "y": 350, "width": 20, "height": 150 },
+
+    { "x": 550, "y": 0, "width": 20, "height": 280 },
+    { "x": 550, "y": 320, "width": 20, "height": 280 },
+
+    { "x": 650, "y": 200, "width": 20, "height": 200 },
+    { "x": 650, "y": 200, "width": 100, "height": 20 },
+    { "x": 650, "y": 380, "width": 100, "height": 20 }
+  ]
+}
