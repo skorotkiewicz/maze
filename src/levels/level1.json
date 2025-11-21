@@ -1,0 +1,15 @@
+{
+  "id": "level1",
+  "name": "The Beginning",
+  "size": { "width": 800, "height": 600 },
+  "start": { "x": 50, "y": 50, "radius": 30 },
+  "end": { "x": 700, "y": 500, "width": 60, "height": 60 },
+  "walls": [
+    { "x": 100, "y": 0, "width": 20, "height": 400 },
+    { "x": 200, "y": 200, "width": 20, "height": 400 },
+    { "x": 300, "y": 0, "width": 20, "height": 300 },
+    { "x": 300, "y": 400, "width": 300, "height": 20 },
+    { "x": 500, "y": 100, "width": 20, "height": 300 },
+    { "x": 600, "y": 200, "width": 200, "height": 20 }
+  ]
+}

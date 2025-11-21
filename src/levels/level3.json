@@ -1,0 +1,19 @@
+{
+  "id": "level3",
+  "name": "The Spiral",
+  "size": { "width": 800, "height": 600 },
+  "start": { "x": 50, "y": 50, "radius": 25 },
+  "end": { "x": 350, "y": 250, "width": 40, "height": 40 },
+  "walls": [
+    { "x": 100, "y": 0, "width": 20, "height": 500 },
+    { "x": 100, "y": 500, "width": 600, "height": 20 },
+    { "x": 700, "y": 100, "width": 20, "height": 420 },
+    { "x": 200, "y": 100, "width": 520, "height": 20 },
+    { "x": 200, "y": 120, "width": 20, "height": 300 },
+    { "x": 200, "y": 400, "width": 400, "height": 20 },
+    { "x": 600, "y": 200, "width": 20, "height": 220 },
+    { "x": 300, "y": 200, "width": 320, "height": 20 },
+    { "x": 300, "y": 220, "width": 20, "height": 100 },
+    { "x": 300, "y": 300, "width": 200, "height": 20 }
+  ]
+}
