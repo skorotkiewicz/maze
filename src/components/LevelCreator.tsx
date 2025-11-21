@@ -4,7 +4,9 @@ import {
   Circle,
   Download,
   Eraser,
+  Maximize2,
   MousePointer2,
+  Move,
   Play,
   Square,
   Upload,
@@ -19,7 +21,7 @@ interface LevelCreatorProps {
   initialLevel?: Level | null;
 }
 
-type Tool = "wall" | "start" | "end" | "eraser";
+type Tool = "wall" | "start" | "end" | "eraser" | "move" | "resize";
 
 export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps) {
   const [level, setLevel] = useState<Level>(
@@ -37,6 +39,10 @@ export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Point | null>(null);
   const [currentWall, setCurrentWall] = useState<Rect | null>(null);
+  const [selectedElement, setSelectedElement] = useState<{
+    type: "wall" | "start" | "end";
+    index?: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const getMousePos = (e: React.MouseEvent) => {
@@ -50,10 +56,10 @@ export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const pos = getMousePos(e);
+    setDragStart(pos);
+    setIsDragging(true);
 
     if (tool === "wall") {
-      setIsDragging(true);
-      setDragStart(pos);
       setCurrentWall({ x: pos.x, y: pos.y, width: 0, height: 0 });
     } else if (tool === "start") {
       setLevel((prev) => ({ ...prev, start: { ...prev.start, x: pos.x, y: pos.y } }));
@@ -63,11 +69,29 @@ export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps
         end: { ...prev.end, x: pos.x - prev.end.width / 2, y: pos.y - prev.end.height / 2 },
       }));
     } else if (tool === "eraser") {
-      // Simple hit detection for walls
       setLevel((prev) => ({
         ...prev,
         walls: prev.walls.filter((w) => !isPointInRect(pos, w)),
       }));
+    } else if (tool === "move" || tool === "resize") {
+      // Hit testing
+      // Check Start
+      if (isPointInCircle(pos, level.start, level.start.radius)) {
+        setSelectedElement({ type: "start" });
+        return;
+      }
+      // Check End
+      if (isPointInRect(pos, level.end)) {
+        setSelectedElement({ type: "end" });
+        return;
+      }
+      // Check Walls (reverse to pick top-most)
+      const wallIndex = [...level.walls].reverse().findIndex((w) => isPointInRect(pos, w));
+      if (wallIndex !== -1) {
+        setSelectedElement({ type: "wall", index: level.walls.length - 1 - wallIndex });
+        return;
+      }
+      setSelectedElement(null);
     }
   };
 
@@ -75,15 +99,73 @@ export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps
     if (!isDragging || !dragStart) return;
 
     const pos = getMousePos(e);
-    const width = pos.x - dragStart.x;
-    const height = pos.y - dragStart.y;
+    const dx = pos.x - dragStart.x;
+    const dy = pos.y - dragStart.y;
 
-    setCurrentWall({
-      x: width > 0 ? dragStart.x : pos.x,
-      y: height > 0 ? dragStart.y : pos.y,
-      width: Math.abs(width),
-      height: Math.abs(height),
-    });
+    if (tool === "wall") {
+      const width = pos.x - dragStart.x;
+      const height = pos.y - dragStart.y;
+      setCurrentWall({
+        x: width > 0 ? dragStart.x : pos.x,
+        y: height > 0 ? dragStart.y : pos.y,
+        width: Math.abs(width),
+        height: Math.abs(height),
+      });
+    } else if (tool === "move" && selectedElement) {
+      if (selectedElement.type === "start") {
+        setLevel((prev) => ({
+          ...prev,
+          start: { ...prev.start, x: prev.start.x + dx, y: prev.start.y + dy },
+        }));
+      } else if (selectedElement.type === "end") {
+        setLevel((prev) => ({
+          ...prev,
+          end: { ...prev.end, x: prev.end.x + dx, y: prev.end.y + dy },
+        }));
+      } else if (selectedElement.type === "wall" && selectedElement.index !== undefined) {
+        setLevel((prev) => {
+          const newWalls = [...prev.walls];
+          newWalls[selectedElement.index!] = {
+            ...newWalls[selectedElement.index!],
+            x: newWalls[selectedElement.index!].x + dx,
+            y: newWalls[selectedElement.index!].y + dy,
+          };
+          return { ...prev, walls: newWalls };
+        });
+      }
+      setDragStart(pos); // Reset drag start for continuous delta
+    } else if (tool === "resize" && selectedElement) {
+      if (selectedElement.type === "start") {
+        // Resize radius based on distance from center
+        const dist = Math.sqrt((pos.x - level.start.x) ** 2 + (pos.y - level.start.y) ** 2);
+        setLevel((prev) => ({
+          ...prev,
+          start: { ...prev.start, radius: Math.max(5, Math.round(dist)) },
+        }));
+      } else if (selectedElement.type === "end") {
+        // Resize width/height based on drag
+        setLevel((prev) => ({
+          ...prev,
+          end: {
+            ...prev.end,
+            width: Math.max(10, prev.end.width + dx),
+            height: Math.max(10, prev.end.height + dy),
+          },
+        }));
+        setDragStart(pos);
+      } else if (selectedElement.type === "wall" && selectedElement.index !== undefined) {
+        setLevel((prev) => {
+          const newWalls = [...prev.walls];
+          newWalls[selectedElement.index!] = {
+            ...newWalls[selectedElement.index!],
+            width: Math.max(10, newWalls[selectedElement.index!].width + dx),
+            height: Math.max(10, newWalls[selectedElement.index!].height + dy),
+          };
+          return { ...prev, walls: newWalls };
+        });
+        setDragStart(pos);
+      }
+    }
   };
 
   const handleMouseUp = () => {
@@ -220,6 +302,18 @@ export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps
                 icon={<MousePointer2 size={18} />}
                 label="Goal"
               />
+              <ToolButton
+                active={tool === "move"}
+                onClick={() => setTool("move")}
+                icon={<Move size={18} />}
+                label="Move"
+              />
+              <ToolButton
+                active={tool === "resize"}
+                onClick={() => setTool("resize")}
+                icon={<Maximize2 size={18} />}
+                label="Resize"
+              />
             </div>
           </div>
 
@@ -355,4 +449,9 @@ function ToolButton({
 // Helper
 function isPointInRect(p: Point, r: Rect) {
   return p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
+}
+
+function isPointInCircle(p: Point, c: { x: number; y: number }, r: number) {
+  const dist = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2);
+  return dist <= r;
 }
