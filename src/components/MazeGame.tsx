@@ -1,6 +1,6 @@
+import { clsx } from "clsx";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { twMerge } from "tailwind-merge";
 import type { Level, Point } from "../types";
 import { isPointInCircle, isPointInRect, lineIntersectsRect } from "../utils/collision";
 
@@ -106,7 +106,7 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
 
       <div
         ref={containerRef}
-        className={twMerge(
+        className={clsx(
           "relative bg-zinc-800/30 rounded-xl overflow-hidden shadow-2xl transition-colors duration-500 cursor-none",
           status === "lost" && "bg-rose-900/10",
           status === "won" && "bg-emerald-900/10",
@@ -117,7 +117,7 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
       >
         {/* Start Zone */}
         <div
-          className={twMerge(
+          className={clsx(
             "absolute rounded-full bg-zinc-700/50 border border-zinc-600 flex items-center justify-center transition-all duration-300",
             status === "idle" &&
               "z-20 bg-zinc-700 border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-110",
