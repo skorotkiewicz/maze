@@ -16,19 +16,22 @@ import type { Level, Point, Rect } from "../types";
 interface LevelCreatorProps {
   onBack: () => void;
   onPlay: (level: Level) => void;
+  initialLevel?: Level | null;
 }
 
 type Tool = "wall" | "start" | "end" | "eraser";
 
-export function LevelCreator({ onBack, onPlay }: LevelCreatorProps) {
-  const [level, setLevel] = useState<Level>({
-    id: `custom-${Date.now()}`,
-    name: "My Custom Maze",
-    size: { width: 800, height: 600 },
-    start: { x: 50, y: 50, radius: 20 },
-    end: { x: 750, y: 550, width: 30, height: 30 },
-    walls: [],
-  });
+export function LevelCreator({ onBack, onPlay, initialLevel }: LevelCreatorProps) {
+  const [level, setLevel] = useState<Level>(
+    initialLevel || {
+      id: `custom-${Date.now()}`,
+      name: "My Custom Maze",
+      size: { width: 800, height: 600 },
+      start: { x: 50, y: 50, radius: 20 },
+      end: { x: 750, y: 550, width: 30, height: 30 },
+      walls: [],
+    },
+  );
 
   const [tool, setTool] = useState<Tool>("wall");
   const [isDragging, setIsDragging] = useState(false);
@@ -96,7 +99,7 @@ export function LevelCreator({ onBack, onPlay }: LevelCreatorProps) {
   };
 
   const handleExport = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(level));
+    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(level))}`;
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute(

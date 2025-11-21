@@ -10,15 +10,19 @@ function App() {
     "menu",
   );
   const [retryCount, setRetryCount] = useState(0);
+  const [isTestPlay, setIsTestPlay] = useState(false);
 
   const handleLevelSelect = (level: Level) => {
     setCurrentLevel(level);
     setGameState("playing");
     setRetryCount(0);
+    setIsTestPlay(false);
   };
 
   const handleCreateLevel = () => {
     setGameState("editor");
+    setCurrentLevel(null);
+    setIsTestPlay(false);
   };
 
   const handleWin = () => {
@@ -30,18 +34,25 @@ function App() {
   };
 
   const handleBack = () => {
-    setGameState("menu");
-    setCurrentLevel(null);
+    if (isTestPlay) {
+      setGameState("editor");
+      // Keep currentLevel to pass back to editor
+    } else {
+      setGameState("menu");
+      setCurrentLevel(null);
+    }
   };
 
   const handleEditorBack = () => {
     setGameState("menu");
+    setCurrentLevel(null);
   };
 
   const handleTestPlay = (level: Level) => {
     setCurrentLevel(level);
     setGameState("playing");
     setRetryCount(0);
+    setIsTestPlay(true);
   };
 
   const handleRetry = () => {
@@ -50,7 +61,9 @@ function App() {
   };
 
   if (gameState === "editor") {
-    return <LevelCreator onBack={handleEditorBack} onPlay={handleTestPlay} />;
+    return (
+      <LevelCreator onBack={handleEditorBack} onPlay={handleTestPlay} initialLevel={currentLevel} />
+    );
   }
 
   if (!currentLevel || gameState === "menu") {
@@ -87,23 +100,10 @@ function App() {
             <div className="flex gap-4 justify-center">
               <button
                 type="button"
-                onClick={() => {
-                  if (
-                    currentLevel?.id.startsWith("custom-") ||
-                    currentLevel?.id.startsWith("imported-")
-                  ) {
-                    // If testing a custom level, go back to editor?
-                    // Actually, for simplicity, let's just go back to menu for now,
-                    // or we'd need to track previous state.
-                    // Let's stick to menu for consistency.
-                    handleBack();
-                  } else {
-                    handleBack();
-                  }
-                }}
+                onClick={handleBack}
                 className="px-8 py-3 rounded-full border border-zinc-200 text-zinc-600 font-medium hover:bg-zinc-50 transition-colors"
               >
-                Menu
+                {isTestPlay ? "Back to Editor" : "Menu"}
               </button>
               <button
                 type="button"

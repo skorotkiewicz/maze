@@ -107,7 +107,7 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
       <div
         ref={containerRef}
         className={twMerge(
-          "relative bg-zinc-800/30 rounded-xl overflow-hidden shadow-2xl transition-colors duration-500",
+          "relative bg-zinc-800/30 rounded-xl overflow-hidden shadow-2xl transition-colors duration-500 cursor-none",
           status === "lost" && "bg-rose-900/10",
           status === "won" && "bg-emerald-900/10",
         )}
