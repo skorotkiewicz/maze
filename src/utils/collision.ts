@@ -1,4 +1,4 @@
-import type { Point, Rect } from '../types';
+import type { Point, Rect } from "../types";
 
 // Check if point is inside rect
 export function isPointInRect(point: Point, rect: Rect): boolean {
