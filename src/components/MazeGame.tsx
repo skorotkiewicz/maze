@@ -3,10 +3,11 @@ import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Level, Point } from "../types";
 import { isPointInCircle, isPointInRect, lineIntersectsRect } from "../utils/collision";
+import { calculatePathLength, findOptimalPath } from "../utils/pathfinding";
 
 interface MazeGameProps {
   level: Level;
-  onWin: () => void;
+  onWin: (stats?: { score: number; userLength: number; optimalLength: number }) => void;
   onLose: () => void;
   onBack: () => void;
 }
@@ -16,13 +17,20 @@ type GameStatus = "idle" | "playing" | "won" | "lost";
 export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
   const [status, setStatus] = useState<GameStatus>("idle");
   const [mousePos, setMousePos] = useState<Point>({ x: 0, y: 0 });
+  const [userPath, setUserPath] = useState<Point[]>([]);
+  const [optimalPath, setOptimalPath] = useState<Point[]>([]);
+
   const lastPos = useRef<Point | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<Point[]>([]); // Ref for mutable path access in loop
 
   // Reset state when level changes
   useEffect(() => {
     setStatus("idle");
     lastPos.current = null;
+    setUserPath([]);
+    setOptimalPath([]);
+    pathRef.current = [];
   }, [level]);
 
   const handleMouseMove = useCallback(
@@ -37,11 +45,16 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
       setMousePos(currentPos);
 
       if (status === "playing") {
+        // Track path
+        pathRef.current.push(currentPos);
+        // Throttle state updates for path to avoid lag, or just update on win?
+        // Updating every frame might be heavy for React state, but we need it for drawing if we want live drawing.
+        // For now, let's just keep it in ref and set state on finish.
+
         // Check for wall collisions
         const prev = lastPos.current || currentPos;
-        const CURSOR_RADIUS = 6; // Match the visual cursor size (w-3 h-3 = 12px dia => 6px rad)
+        const CURSOR_RADIUS = 6;
 
-        // 1. Check if we hit any walls (expand walls by cursor radius to account for edge hits)
         const hitWall = level.walls.some((wall) => {
           const expandedWall = {
             x: wall.x - CURSOR_RADIUS,
@@ -54,27 +67,44 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
 
         if (hitWall) {
           setStatus("lost");
+          setUserPath(pathRef.current);
           onLose();
           return;
         }
 
-        // 2. Check if we reached the end
+        // Check win
         if (isPointInRect(currentPos, level.end)) {
           setStatus("won");
-          onWin();
+          const finalUserPath = pathRef.current;
+          setUserPath(finalUserPath);
+
+          // Calculate optimal path
+          const optimal = findOptimalPath(level);
+          setOptimalPath(optimal);
+
+          // Calculate score
+          const userLen = calculatePathLength(finalUserPath);
+          const optLen = calculatePathLength(optimal);
+          // Score is percentage of optimality.
+          // If user is perfect, score is 100%.
+          // If user is 2x longer, score is 50%.
+          const score = Math.min(100, Math.round((optLen / userLen) * 100));
+
+          onWin({ score, userLength: Math.round(userLen), optimalLength: Math.round(optLen) });
           return;
         }
 
-        // 3. Check if we went out of bounds (optional, but good for anti-cheat)
+        // Check bounds
         if (x < 0 || x > level.size.width || y < 0 || y > level.size.height) {
           setStatus("lost");
+          setUserPath(pathRef.current);
           onLose();
           return;
         }
       } else if (status === "idle") {
-        // Check if we entered the start zone
         if (isPointInCircle(currentPos, level.start, level.start.radius)) {
           setStatus("playing");
+          pathRef.current = [currentPos];
         }
       }
 
@@ -86,9 +116,22 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
   const handleMouseLeave = useCallback(() => {
     if (status === "playing") {
       setStatus("lost");
+      setUserPath(pathRef.current);
       onLose();
     }
   }, [status, onLose]);
+
+  // Helper to render SVG path
+  const pointsToSvgPath = (points: Point[]) => {
+    if (points.length === 0) return "";
+    return (
+      `M ${points[0].x} ${points[0].y} ` +
+      points
+        .slice(1)
+        .map((p) => `L ${p.x} ${p.y}`)
+        .join(" ")
+    );
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-zinc-100 p-4">
@@ -158,6 +201,32 @@ export function MazeGame({ level, onWin, onLose, onBack }: MazeGameProps) {
             }}
           />
         ))}
+
+        {/* Paths Visualization */}
+        <svg className="absolute inset-0 pointer-events-none z-10" width="100%" height="100%">
+          <title>Path Visualization</title>
+          {/* Optimal Path */}
+          {status === "won" && optimalPath.length > 0 && (
+            <path
+              d={pointsToSvgPath(optimalPath)}
+              fill="none"
+              stroke="#10b981" // Emerald-500
+              strokeWidth="2"
+              strokeDasharray="4 4"
+              className="opacity-50"
+            />
+          )}
+          {/* User Path */}
+          {(status === "won" || status === "lost") && userPath.length > 0 && (
+            <path
+              d={pointsToSvgPath(userPath)}
+              fill="none"
+              stroke={status === "won" ? "#6366f1" : "#f43f5e"} // Indigo-500 or Rose-500
+              strokeWidth="2"
+              className="opacity-80"
+            />
+          )}
+        </svg>
 
         {/* Cursor (Custom) */}
         <div
