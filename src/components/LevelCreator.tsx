@@ -14,6 +14,7 @@ import {
 import type React from "react";
 import { useRef, useState } from "react";
 import type { Level, Point, Rect } from "../types";
+import { isPointInCircle, isPointInRect } from "../utils/collision";
 
 interface LevelCreatorProps {
   onBack: () => void;
@@ -444,14 +445,4 @@ function ToolButton({
       <span className="text-[10px] mt-1 font-medium">{label}</span>
     </button>
   );
-}
-
-// Helper
-function isPointInRect(p: Point, r: Rect) {
-  return p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
-}
-
-function isPointInCircle(p: Point, c: { x: number; y: number }, r: number) {
-  const dist = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2);
-  return dist <= r;
 }
